@@ -17,7 +17,7 @@ class StatsClientTest {
     private static final Logger log = LoggerFactory.getLogger(StatsClientTest.class);
 
     @Test
-    void ClientCreationTest() {
+    void clientCreationTest() {
         log.info("Тест создания StatsClient");
 
         StatsClient client = new StatsClient("http://localhost:9090", new RestTemplateBuilder());
@@ -28,7 +28,7 @@ class StatsClientTest {
     }
 
     @Test
-    void CreateEndpointHitTest() {
+    void createEndpointHitTest() {
         log.info("Тест создания EndpointHit");
 
         LocalDateTime now = LocalDateTime.now();
@@ -50,7 +50,7 @@ class StatsClientTest {
     }
 
     @Test
-    void CreateViewStatsTest() {
+    void createViewStatsTest() {
         log.info("Тест создания ViewStats");
 
         ViewStats stats = ViewStats.builder()
@@ -68,7 +68,7 @@ class StatsClientTest {
     }
 
     @Test
-    void EndpointHitSerializationTest() {
+    void endpointHitSerializationTest() {
         log.info("Тест сериализации/десериализации EndpointHit");
 
         LocalDateTime timestamp = LocalDateTime.of(2024, 1, 15, 12, 0, 0);
