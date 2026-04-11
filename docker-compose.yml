@@ -1,14 +1,48 @@
 services:
+  # Сервер статистики
   stats-server:
+    build: ./statistics/server
+    container_name: stats-server
     ports:
       - "9090:9090"
+    depends_on:
+      stats-db:
+        condition: service_healthy
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://stats-db:5432/ewm-stats
+      - SPRING_DATASOURCE_USERNAME=stats_user
+      - SPRING_DATASOURCE_PASSWORD=stats_password
+      - SERVER_PORT=9090
+    restart: always
+    networks:
+      - ewm-network
 
+  # База данных для сервера статистики
   stats-db:
     image: postgres:16.1
-
-  ewm-service:
+    container_name: stats-db
     ports:
-      - "8080:8080"
+      - "5433:5432"
+    environment:
+      - POSTGRES_DB=ewm-stats
+      - POSTGRES_USER=stats_user
+      - POSTGRES_PASSWORD=stats_password
+    volumes:
+      - stats-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U stats_user -d ewm-stats"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: always
+    networks:
+      - ewm-network
 
-  ewm-db:
-    image: postgres:16.1
+# Сетевые настройки
+networks:
+  ewm-network:
+    driver: bridge
+
+# Тома для персистентности данных
+volumes:
+  stats-db-data:
