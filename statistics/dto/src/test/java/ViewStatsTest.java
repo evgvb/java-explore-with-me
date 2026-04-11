@@ -67,14 +67,7 @@ class ViewStatsTest {
     void testDeserialization() throws Exception {
         log.info("ViewStats из JSON");
 
-        // Arrange
-        String json = """
-                {
-                    "app": "ewm-main-service",
-                    "uri": "/events/500",
-                    "hits": 999
-                }
-                """;
+        String json = "{\"app\":\"ewm-main-service\",\"uri\":\"/events/500\",\"hits\":999}";
 
         log.debug("JSON: {}", json);
 
