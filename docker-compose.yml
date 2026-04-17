@@ -38,6 +38,48 @@ services:
     networks:
       - ewm-network
 
+  # Основной сервис
+  ewm-service:
+    build: ./main-service
+    container_name: ewm-service
+    ports:
+      - "8080:8080"
+    depends_on:
+      ewm-db:
+        condition: service_healthy
+      stats-server:
+        condition: service_started
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://ewm-db:5432/ewm-main
+      - SPRING_DATASOURCE_USERNAME=ewm_user
+      - SPRING_DATASOURCE_PASSWORD=ewm_password
+      - STATS_SERVER_URL=http://stats-server:9090
+      - SERVER_PORT=8080
+    restart: always
+    networks:
+      - ewm-network
+
+  # База данных для основного сервиса
+  ewm-db:
+    image: postgres:16.1
+    container_name: ewm-db
+    ports:
+      - "5434:5432"
+    environment:
+      - POSTGRES_DB=ewm-main
+      - POSTGRES_USER=ewm_user
+      - POSTGRES_PASSWORD=ewm_password
+    volumes:
+      - ewm-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ewm_user -d ewm-main"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: always
+    networks:
+      - ewm-network
+
 # Сетевые настройки
 networks:
   ewm-network:
@@ -46,3 +88,4 @@ networks:
 # Тома для персистентности данных
 volumes:
   stats-db-data:
+  ewm-db-data:
