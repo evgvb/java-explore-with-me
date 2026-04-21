@@ -26,5 +26,6 @@ public interface EventService {
     // Администраторские
     List<EventFullDto> getEventsByAdmin(List<Long> users, List<String> states, List<Long> categories,
                                         LocalDateTime rangeStart, LocalDateTime rangeEnd, int from, int size);
+
     EventFullDto updateEventByAdmin(Long eventId, UpdateEventAdminRequest dto);
 }
