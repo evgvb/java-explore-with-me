@@ -9,14 +9,18 @@ public interface EventService {
 
     // Приватные
     EventFullDto createEvent(Long userId, NewEventDto dto);
+
     List<EventShortDto> getUserEvents(Long userId, int from, int size);
+
     EventFullDto getEventByUser(Long userId, Long eventId);
+
     EventFullDto updateEventByUser(Long userId, Long eventId, UpdateEventUserRequest dto);
 
     // Публичные
     List<EventShortDto> getPublicEvents(String text, List<Long> categories, Boolean paid,
                                         LocalDateTime rangeStart, LocalDateTime rangeEnd,
                                         Boolean onlyAvailable, String sort, int from, int size);
+
     EventFullDto getPublicEvent(Long id);
 
     // Администраторские

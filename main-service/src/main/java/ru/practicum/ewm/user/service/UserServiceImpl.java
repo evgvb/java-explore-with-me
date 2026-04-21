@@ -28,6 +28,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public UserDto registerUser(NewUserRequest request) {
+
         log.info("Регистрация нового пользователя: email={}", request.getEmail());
 
         if (userRepository.existsByEmail(request.getEmail())) {
