@@ -8,7 +8,6 @@ import org.springframework.web.bind.annotation.*;
 import ru.practicum.ewm.event.dto.EventFullDto;
 import ru.practicum.ewm.event.dto.EventShortDto;
 import ru.practicum.ewm.event.service.EventService;
-import ru.practicum.ewm.utils.HttpUtils;
 import ru.practicum.stats.client.StatsClient;
 import ru.practicum.stats.dto.EndpointHit;
 
