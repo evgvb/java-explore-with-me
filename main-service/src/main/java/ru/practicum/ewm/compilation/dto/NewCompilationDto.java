@@ -10,7 +10,8 @@ import java.util.Set;
 public class NewCompilationDto {
     private Set<Long> events;
     private Boolean pinned = false;
-    @NotBlank
-    @Size(min = 1, max = 50)
+
+    @NotBlank(message = "Название подборки не может быть пустым")
+    @Size(min = 1, max = 50, message = "Название подборки должно быть от 1 до 50 символов")
     private String title;
 }

@@ -31,9 +31,10 @@ public class ErrorHandler {
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public Map<String, String> handleException(Exception e) {
         log.error("Внутренняя ошибка сервера: {}", e.getMessage(), e);
+
         return Map.of(
                 "error", "INTERNAL_SERVER_ERROR",
-                "message", "Произошла внутренняя ошибка сервера",
+                "message", e.getMessage() != null ? e.getMessage() : "Произошла внутренняя ошибка сервера",
                 "timestamp", LocalDateTime.now().format(FORMATTER)
         );
     }

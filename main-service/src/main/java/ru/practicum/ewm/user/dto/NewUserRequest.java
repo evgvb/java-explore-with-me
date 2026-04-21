@@ -13,9 +13,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class NewUserRequest {
+
     @NotBlank
     @Email(message = "Некорректный формат email")
-    @Size(min = 6, max = 360)
+    @Size(min = 6, max = 254)
     private String email;
 
     @NotBlank

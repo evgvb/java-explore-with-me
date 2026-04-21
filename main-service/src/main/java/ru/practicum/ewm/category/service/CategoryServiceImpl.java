@@ -31,6 +31,8 @@ public class CategoryServiceImpl implements CategoryService {
     @Transactional
     public CategoryDto addCategory(NewCategoryDto dto) {
         log.info("Добавление новой категории: {}", dto.getName());
+
+        checkCategoryNameUnique(dto.getName());
         Category category = mapper.toEntity(dto);
         Category saved = categoryRepository.save(category);
         log.debug("Категория добавлена с id={}", saved.getId());
@@ -57,6 +59,11 @@ public class CategoryServiceImpl implements CategoryService {
         log.info("Обновление категории id={}", catId);
         Category category = categoryRepository.findById(catId)
                 .orElseThrow(() -> new NotFoundException("Категория не найдена"));
+
+        if (!category.getName().equals(dto.getName())) {
+            checkCategoryNameUnique(dto.getName());
+        }
+
         category.setName(dto.getName());
         Category updated = categoryRepository.save(category);
         log.debug("Категория обновлена");
@@ -77,5 +84,12 @@ public class CategoryServiceImpl implements CategoryService {
         Category category = categoryRepository.findById(catId)
                 .orElseThrow(() -> new NotFoundException("Категория не найдена"));
         return mapper.toDto(category);
+    }
+
+    private void checkCategoryNameUnique(String name) {
+        if (categoryRepository.existsByName(name)) {
+            log.warn("Категория с именем '{}' уже существует", name);
+            throw new ConflictException("Категория с именем '" + name + "' уже существует");
+        }
     }
 }

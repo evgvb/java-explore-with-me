@@ -22,7 +22,7 @@ public class Event {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "annotation", nullable = false, length = 2000)
+    @Column(name = "annotation", nullable = false, length = 2000, columnDefinition = "TEXT")
     private String annotation;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -30,12 +30,12 @@ public class Event {
     private Category category;
 
     @Column(name = "confirmed_requests")
-    private Long confirmedRequests; // не храним в БД, вычисляем через запросы
+    private Long confirmedRequests;
 
     @Column(name = "created_on", nullable = false)
     private LocalDateTime createdOn;
 
-    @Column(name = "description", nullable = false, length = 7000)
+    @Column(name = "description", nullable = false, length = 7000, columnDefinition = "TEXT")
     private String description;
 
     @Column(name = "event_date", nullable = false)
@@ -64,8 +64,7 @@ public class Event {
     @Column(name = "state", nullable = false)
     private EventState state;
 
-    @Column(name = "title", nullable = false, length = 120)
+    @Column(name = "title", nullable = false, length = 120, columnDefinition = "VARCHAR(120)")
     private String title;
 
-    // views не храним, получаем из stats-service
 }

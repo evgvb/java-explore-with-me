@@ -83,6 +83,12 @@ public class RequestServiceImpl implements RequestService {
         log.info("Пользователь id={} отменяет запрос id={}", userId, requestId);
         ParticipationRequest request = requestRepository.findByIdAndRequesterId(requestId, userId)
                 .orElseThrow(() -> new NotFoundException("Запрос не найден"));
+
+        if (request.getStatus() != RequestStatus.PENDING) {
+            log.warn("Нельзя отменить заявку в статусе {}", request.getStatus());
+            throw new ConflictException("Отменить можно только заявку в статусе ожидания");
+        }
+
         request.setStatus(RequestStatus.CANCELED);
         ParticipationRequest saved = requestRepository.save(request);
         log.debug("Запрос отменён");
@@ -131,11 +137,18 @@ public class RequestServiceImpl implements RequestService {
                 throw new BadRequestException("Запрос не относится к данному событию");
             }
             if (req.getStatus() != RequestStatus.PENDING) {
-                throw new BadRequestException("Статус можно изменить только у заявок в состоянии ожидания");
+                throw new ConflictException("Статус можно изменить только у заявок в состоянии ожидания");
             }
         }
 
         long confirmedCount = requestRepository.countConfirmedByEventId(eventId);
+
+        if (updateRequest.getStatus() == RequestStatus.CONFIRMED
+                && event.getParticipantLimit() > 0
+                && confirmedCount >= event.getParticipantLimit()) {
+            throw new ConflictException("Достигнут лимит одобренных заявок");
+        }
+
         long availableSlots = event.getParticipantLimit() - confirmedCount;
 
         List<ParticipationRequestDto> confirmed = new ArrayList<>();

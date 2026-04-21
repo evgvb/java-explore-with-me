@@ -32,6 +32,8 @@ import java.util.stream.Collectors;
 @Transactional(readOnly = true)
 public class EventServiceImpl implements EventService {
 
+    private static final LocalDateTime STATS_START = LocalDateTime.of(1970, 1, 1, 0, 0, 0);
+
     private final EventRepository eventRepository;
     private final UserRepository userRepository;
     private final CategoryRepository categoryRepository;
@@ -98,12 +100,10 @@ public class EventServiceImpl implements EventService {
         Event event = eventRepository.findByIdAndInitiatorId(eventId, userId)
                 .orElseThrow(() -> new NotFoundException("Событие не найдено или не принадлежит пользователю"));
 
-        // Нельзя редактировать опубликованные события
         if (event.getState() == EventState.PUBLISHED) {
             throw new ConflictException("Нельзя редактировать опубликованное событие");
         }
 
-        // Валидация даты, если она изменяется
         if (dto.getEventDate() != null && dto.getEventDate().isBefore(LocalDateTime.now().plusHours(2))) {
             throw new BadRequestException("Дата начала должна быть не ранее чем через 2 часа от текущего момента");
         }
@@ -116,7 +116,6 @@ public class EventServiceImpl implements EventService {
 
         eventMapper.updateEntity(event, dto, category);
 
-        // Обработка изменения статуса
         if (dto.getStateAction() != null) {
             switch (dto.getStateAction()) {
                 case SEND_TO_REVIEW:
@@ -145,7 +144,6 @@ public class EventServiceImpl implements EventService {
                         "onlyAvailable={}, sort={}, from={}, size={}",
                 text, categories, paid, rangeStart, rangeEnd, onlyAvailable, sort, from, size);
 
-        // Если диапазон не задан, то ищем события позже текущего момента
         if (rangeStart == null && rangeEnd == null) {
             rangeStart = LocalDateTime.now();
         }
@@ -216,7 +214,6 @@ public class EventServiceImpl implements EventService {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new NotFoundException("Событие не найдено"));
 
-        // Проверка даты для публикации
         if (dto.getEventDate() != null && dto.getEventDate().isBefore(LocalDateTime.now().plusHours(1))) {
             throw new BadRequestException("Дата начала изменяемого события должна быть не ранее чем за час от даты публикации");
         }
@@ -229,7 +226,6 @@ public class EventServiceImpl implements EventService {
 
         eventMapper.updateEntity(event, dto, category);
 
-        // Обработка изменения статуса
         if (dto.getStateAction() != null) {
             switch (dto.getStateAction()) {
                 case PUBLISH_EVENT:
@@ -260,15 +256,15 @@ public class EventServiceImpl implements EventService {
     private EventFullDto enrichWithStats(EventFullDto dto) {
         if (dto == null) return null;
 
-        // Получаем количество просмотров из stats-service
         ViewStats stats = statsClient.getStatsForUri(
-                LocalDateTime.now().minusYears(100), // очень давно
+                STATS_START, // очень давно
                 LocalDateTime.now(),
                 dto.getUri(),
-                false);
+                true);
         dto.setViews(stats != null ? stats.getHits() : 0L);
 
-        // Получаем количество подтверждённых заявок
+        log.debug("Статистика для {}: hits={}", dto.getUri(), stats != null ? stats.getHits() : 0);
+
         Long confirmed = requestRepository.countConfirmedByEventId(dto.getId());
         dto.setConfirmedRequests(confirmed != null ? confirmed : 0L);
 
@@ -285,10 +281,11 @@ public class EventServiceImpl implements EventService {
 
         // Запрашиваем статистику для всех uri за всё время
         List<ViewStats> statsList = statsClient.getStats(
-                LocalDateTime.now().minusYears(100),
+                STATS_START,
                 LocalDateTime.now(),
                 uris,
                 false);
+
 
         // Преобразуем в Map<uri, hits>
         Map<String, Long> hitsMap = statsList.stream()

@@ -13,7 +13,7 @@ import java.util.Optional;
 
 public interface EventRepository extends JpaRepository<Event, Long> {
 
-    // Для админа: поиск с фильтрами
+    //поиск с фильтрами
     @Query("SELECT e FROM Event e " +
             "WHERE (:users IS NULL OR e.initiator.id IN :users) " +
             "AND (:states IS NULL OR e.state IN :states) " +
@@ -27,11 +27,10 @@ public interface EventRepository extends JpaRepository<Event, Long> {
                                       @Param("rangeEnd") LocalDateTime rangeEnd,
                                       Pageable pageable);
 
-    // Для публичного API: только опубликованные события
     @Query("SELECT e FROM Event e " +
             "WHERE e.state = ru.practicum.ewm.event.model.EventState.PUBLISHED " +
-            "AND (:text IS NULL OR (LOWER(e.annotation) LIKE LOWER(CONCAT('%', :text, '%')) " +
-            "OR LOWER(e.description) LIKE LOWER(CONCAT('%', :text, '%')))) " +
+            "AND (:text IS NULL OR (LOWER(e.annotation) LIKE LOWER(CONCAT('%', CAST(:text AS string), '%')) " +
+            "OR LOWER(e.description) LIKE LOWER(CONCAT('%', CAST(:text AS string), '%')))) " +
             "AND (:categories IS NULL OR e.category.id IN :categories) " +
             "AND (:paid IS NULL OR e.paid = :paid) " +
             "AND (cast(:rangeStart as timestamp) IS NULL OR e.eventDate >= :rangeStart) " +
@@ -43,7 +42,7 @@ public interface EventRepository extends JpaRepository<Event, Long> {
                                             @Param("rangeEnd") LocalDateTime rangeEnd,
                                             Pageable pageable);
 
-    // Для приватного API: события пользователя
+    //события пользователя
     List<Event> findAllByInitiatorId(Long userId, Pageable pageable);
 
     Optional<Event> findByIdAndInitiatorId(Long eventId, Long userId);

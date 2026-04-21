@@ -36,7 +36,9 @@ public class EventPublicController {
             @RequestParam(defaultValue = "0") int from,
             @RequestParam(defaultValue = "10") int size,
             HttpServletRequest request) {
+
         log.info("- GET /events");
+
         // Отправка hit в статистику
         statsClient.hit(EndpointHit.builder()
                 .app("ewm-main-service")
@@ -50,7 +52,9 @@ public class EventPublicController {
 
     @GetMapping("/{id}")
     public EventFullDto getEvent(@PathVariable Long id, HttpServletRequest request) {
+
         log.info("- GET /events/{}", id);
+
         statsClient.hit(EndpointHit.builder()
                 .app("ewm-main-service")
                 .uri(request.getRequestURI())
@@ -58,16 +62,5 @@ public class EventPublicController {
                 .timestamp(LocalDateTime.now())
                 .build());
         return eventService.getPublicEvent(id);
-    }
-
-    private void saveHit(HttpServletRequest request, String uri) {
-        String ip = HttpUtils.getClientIp(request);
-        log.debug("Сохранение хита: app=ewm-main-service, uri={}, ip={}", uri, ip);
-        statsClient.hit(EndpointHit.builder()
-                .app("ewm-main-service")
-                .uri(uri)
-                .ip(ip)
-                .timestamp(LocalDateTime.now())
-                .build());
     }
 }

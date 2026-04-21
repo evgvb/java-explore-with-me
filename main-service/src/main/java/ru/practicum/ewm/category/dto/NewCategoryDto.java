@@ -12,7 +12,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class NewCategoryDto {
-    @NotBlank
-    @Size(min = 1, max = 50)
+
+    @NotBlank(message = "Название категории не может быть пустым (NewCategoryDto)")
+    @Size(min = 1, max = 50, message = "Название категории должно быть от 1 до 50 символов (NewCategoryDto)")
     private String name;
 }

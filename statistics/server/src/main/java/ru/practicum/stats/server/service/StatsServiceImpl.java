@@ -40,8 +40,10 @@ public class StatsServiceImpl implements StatsService {
         log.debug("Получение статистики: start={}, end={}, uris={}, unique={}", start, end, uris, unique);
 
         // Валидация дат: дата начала не должна быть позже даты конца
+        if (start == null || end == null) {
+            throw new IllegalArgumentException("Даты начала и окончания не могут быть null");
+        }
         if (start.isAfter(end)) {
-            log.warn("Некорректный диапазон дат: start={} после end={}", start, end);
             throw new IllegalArgumentException("Дата начала не может быть позже даты окончания");
         }
 

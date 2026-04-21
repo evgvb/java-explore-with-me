@@ -20,6 +20,7 @@ public class EventMapper {
     private final UserMapper userMapper;
 
     public Event toEntity(NewEventDto dto, User initiator, Category category) {
+
         return Event.builder()
                 .annotation(dto.getAnnotation())
                 .category(category)
@@ -27,7 +28,7 @@ public class EventMapper {
                 .description(dto.getDescription())
                 .eventDate(dto.getEventDate())
                 .initiator(initiator)
-                .location(new Location(dto.getLocation().getLatitude(), dto.getLocation().getLongitude()))
+                .location(new Location(dto.getLocation().getLat(), dto.getLocation().getLon()))
                 .paid(dto.getPaid() != null ? dto.getPaid() : false)
                 .participantLimit(dto.getParticipantLimit() != null ? dto.getParticipantLimit() : 0)
                 .requestModeration(dto.getRequestModeration() != null ? dto.getRequestModeration() : true)
@@ -37,6 +38,7 @@ public class EventMapper {
     }
 
     public EventShortDto toShortDto(Event event) {
+
         if (event == null) return null;
         CategoryDto categoryDto = categoryMapper.toDto(event.getCategory());
         UserShortDto initiatorDto = userMapper.toShortDto(event.getInitiator());
@@ -54,10 +56,17 @@ public class EventMapper {
     }
 
     public EventFullDto toFullDto(Event event) {
+
         if (event == null) return null;
+
         CategoryDto categoryDto = categoryMapper.toDto(event.getCategory());
         UserShortDto initiatorDto = userMapper.toShortDto(event.getInitiator());
-        LocationDto locationDto = new LocationDto(event.getLocation().getLatitude(), event.getLocation().getLongitude());
+
+        LocationDto locationDto = null;
+        if (event.getLocation() != null) {
+            locationDto = new LocationDto(event.getLocation().getLat(), event.getLocation().getLon());
+        }
+
         return EventFullDto.builder()
                 .id(event.getId())
                 .annotation(event.getAnnotation())
@@ -79,12 +88,13 @@ public class EventMapper {
     }
 
     public void updateEntity(Event event, UpdateEventUserRequest dto, Category category) {
+
         if (dto.getAnnotation() != null) event.setAnnotation(dto.getAnnotation());
         if (category != null) event.setCategory(category);
         if (dto.getDescription() != null) event.setDescription(dto.getDescription());
         if (dto.getEventDate() != null) event.setEventDate(dto.getEventDate());
         if (dto.getLocation() != null) {
-            event.setLocation(new Location(dto.getLocation().getLatitude(), dto.getLocation().getLongitude()));
+            event.setLocation(new Location(dto.getLocation().getLat(), dto.getLocation().getLon()));
         }
         if (dto.getPaid() != null) event.setPaid(dto.getPaid());
         if (dto.getParticipantLimit() != null) event.setParticipantLimit(dto.getParticipantLimit());
@@ -93,12 +103,13 @@ public class EventMapper {
     }
 
     public void updateEntity(Event event, UpdateEventAdminRequest dto, Category category) {
+
         if (dto.getAnnotation() != null) event.setAnnotation(dto.getAnnotation());
         if (category != null) event.setCategory(category);
         if (dto.getDescription() != null) event.setDescription(dto.getDescription());
         if (dto.getEventDate() != null) event.setEventDate(dto.getEventDate());
         if (dto.getLocation() != null) {
-            event.setLocation(new Location(dto.getLocation().getLatitude(), dto.getLocation().getLongitude()));
+            event.setLocation(new Location(dto.getLocation().getLat(), dto.getLocation().getLon()));
         }
         if (dto.getPaid() != null) event.setPaid(dto.getPaid());
         if (dto.getParticipantLimit() != null) event.setParticipantLimit(dto.getParticipantLimit());

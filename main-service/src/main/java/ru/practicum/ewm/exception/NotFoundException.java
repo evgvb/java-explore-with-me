@@ -1,4 +1,3 @@
-// exception/NotFoundException.java
 package ru.practicum.ewm.exception;
 
 public class NotFoundException extends RuntimeException {

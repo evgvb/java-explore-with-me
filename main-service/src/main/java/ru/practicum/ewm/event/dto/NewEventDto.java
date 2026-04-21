@@ -1,6 +1,7 @@
 package ru.practicum.ewm.event.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -31,11 +32,12 @@ public class NewEventDto {
     private LocalDateTime eventDate;
 
     @NotNull
+    @Valid
     private LocationDto location;
 
     private Boolean paid = false;
 
-    @PositiveOrZero
+    @PositiveOrZero(message = "Лимит участников не может быть отрицательным")
     private Integer participantLimit = 0;
 
     private Boolean requestModeration = true;
