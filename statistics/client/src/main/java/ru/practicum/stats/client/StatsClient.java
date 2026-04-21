@@ -45,7 +45,6 @@ public class StatsClient {
                 hit.getApp(), hit.getUri(), hit.getIp());
 
         try {
-
             String url = serverUrl + "/hit";
 
             HttpHeaders headers = new HttpHeaders();
