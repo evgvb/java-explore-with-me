@@ -41,16 +41,16 @@ public class RequestServiceImpl implements RequestService {
     public ParticipationRequestDto addRequest(Long userId, Long eventId) {
         log.info("Пользователь id={} подаёт запрос на участие в событии id={}", userId, eventId);
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
+                .orElseThrow(() -> new NotFoundException("Пользователь не найден. id=" + userId));
         Event event = eventRepository.findById(eventId)
-                .orElseThrow(() -> new NotFoundException("Событие не найдено"));
+                .orElseThrow(() -> new NotFoundException("Событие не найдено. id=" + eventId));
 
         // Проверки
         if (event.getInitiator().getId().equals(userId)) {
-            throw new ConflictException("Инициатор события не может подать запрос на участие");
+            throw new ConflictException(String.format("Инициатор (userId=%d) события (eventId=%d) не может подать запрос на участие", userId, eventId));
         }
         if (event.getState() != EventState.PUBLISHED) {
-            throw new ConflictException("Нельзя участвовать в неопубликованном событии");
+            throw new ConflictException("Нельзя участвовать в неопубликованном событии. id=" + eventId);
         }
         if (event.getParticipantLimit() > 0 &&
                 requestRepository.countConfirmedByEventId(eventId) >= event.getParticipantLimit()) {
@@ -58,7 +58,7 @@ public class RequestServiceImpl implements RequestService {
         }
         if (requestRepository.findAllByRequesterId(userId).stream()
                 .anyMatch(r -> r.getEvent().getId().equals(eventId))) {
-            throw new ConflictException("Повторный запрос запрещён");
+            throw new ConflictException("Повторный запрос запрещён. id=" + eventId);
         }
 
         RequestStatus status = event.getRequestModeration() && event.getParticipantLimit() > 0
@@ -99,7 +99,7 @@ public class RequestServiceImpl implements RequestService {
     public List<ParticipationRequestDto> getUserRequests(Long userId) {
         log.info("Получение запросов пользователя id={}", userId);
         if (!userRepository.existsById(userId)) {
-            throw new NotFoundException("Пользователь не найден");
+            throw new NotFoundException("Пользователь не найден: id=" + userId);
         }
         return requestRepository.findAllByRequesterId(userId).stream()
                 .map(mapper::toDto)
@@ -109,8 +109,9 @@ public class RequestServiceImpl implements RequestService {
     @Override
     public List<ParticipationRequestDto> getEventRequests(Long userId, Long eventId) {
         log.info("Получение запросов на событие id={} для пользователя id={}", eventId, userId);
-        Event event = eventRepository.findByIdAndInitiatorId(eventId, userId)
-                .orElseThrow(() -> new NotFoundException("Событие не найдено или не принадлежит пользователю"));
+
+        Event event = getEventByUser(eventId, userId);
+
         return requestRepository.findAllByEventId(eventId).stream()
                 .map(mapper::toDto)
                 .collect(Collectors.toList());
@@ -123,8 +124,7 @@ public class RequestServiceImpl implements RequestService {
         log.info("Изменение статуса запросов для события id={}, пользователь id={}, запросы={}, статус={}",
                 eventId, userId, updateRequest.getRequestIds(), updateRequest.getStatus());
 
-        Event event = eventRepository.findByIdAndInitiatorId(eventId, userId)
-                .orElseThrow(() -> new NotFoundException("Событие не найдено или не принадлежит пользователю"));
+        Event event = getEventByUser(eventId, userId);
 
         if (event.getParticipantLimit() == 0 || !event.getRequestModeration()) {
             throw new BadRequestException("Для события не требуется подтверждение заявок");
@@ -180,5 +180,11 @@ public class RequestServiceImpl implements RequestService {
                 .confirmedRequests(confirmed)
                 .rejectedRequests(rejected)
                 .build();
+    }
+
+    private Event getEventByUser(Long eventId, Long userId) {
+        return eventRepository.findByIdAndInitiatorId(eventId, userId)
+                .orElseThrow(() -> new NotFoundException(
+                        String.format("Событие id=%d не найдено или не принадлежит пользователю id=%d", eventId, userId)));
     }
 }

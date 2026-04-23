@@ -1,10 +1,7 @@
 package ru.practicum.ewm.event.model;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import ru.practicum.ewm.category.model.Category;
 import ru.practicum.ewm.user.model.User;
 
@@ -12,10 +9,11 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "events")
-@Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Getter
+@Setter
 public class Event {
 
     @Id

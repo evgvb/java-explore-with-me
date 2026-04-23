@@ -1,10 +1,7 @@
 package ru.practicum.ewm.request.model;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import ru.practicum.ewm.event.model.Event;
 import ru.practicum.ewm.user.model.User;
 
@@ -14,10 +11,11 @@ import java.time.LocalDateTime;
 @Table(name = "requests", uniqueConstraints = {
         @UniqueConstraint(columnNames = {"event_id", "requester_id"})
 })
-@Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Getter
+@Setter
 public class ParticipationRequest {
 
     @Id

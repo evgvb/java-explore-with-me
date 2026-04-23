@@ -48,11 +48,9 @@ public class EventServiceImpl implements EventService {
     public EventFullDto createEvent(Long userId, NewEventDto dto) {
         log.info("Создание события пользователем id={}", userId);
 
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
+        User user = getUserById(userId);
 
-        Category category = categoryRepository.findById(dto.getCategory())
-                .orElseThrow(() -> new NotFoundException("Категория не найдена"));
+        Category category = getCategoryById(dto.getCategory());
 
         // дата начала не может быть раньше, чем через 2 часа от текущего момента
         if (dto.getEventDate().isBefore(LocalDateTime.now().plusHours(2))) {
@@ -74,9 +72,9 @@ public class EventServiceImpl implements EventService {
     @Override
     public List<EventShortDto> getUserEvents(Long userId, int from, int size) {
         log.info("Получение событий пользователя id={}, from={}, size={}", userId, from, size);
-        if (!userRepository.existsById(userId)) {
-            throw new NotFoundException("Пользователь не найден");
-        }
+
+        getUserById(userId);
+
         Pageable pageable = PageRequest.of(from / size, size);
         List<Event> events = eventRepository.findAllByInitiatorId(userId, pageable);
         List<EventShortDto> dtos = events.stream()
@@ -88,8 +86,7 @@ public class EventServiceImpl implements EventService {
     @Override
     public EventFullDto getEventByUser(Long userId, Long eventId) {
         log.info("Пользователь id={} получает своё событие id={}", userId, eventId);
-        Event event = eventRepository.findByIdAndInitiatorId(eventId, userId)
-                .orElseThrow(() -> new NotFoundException("Событие не найдено или не принадлежит пользователю"));
+        Event event = getEventByUserIds(eventId, userId);
         return enrichWithStats(eventMapper.toFullDto(event));
     }
 
@@ -97,11 +94,10 @@ public class EventServiceImpl implements EventService {
     @Transactional
     public EventFullDto updateEventByUser(Long userId, Long eventId, UpdateEventUserRequest dto) {
         log.info("Пользователь id={} обновляет событие id={}", userId, eventId);
-        Event event = eventRepository.findByIdAndInitiatorId(eventId, userId)
-                .orElseThrow(() -> new NotFoundException("Событие не найдено или не принадлежит пользователю"));
+        Event event = getEventByUserIds(eventId, userId);
 
         if (event.getState() == EventState.PUBLISHED) {
-            throw new ConflictException("Нельзя редактировать опубликованное событие");
+            throw new ConflictException("Нельзя редактировать опубликованное событие: id=" + eventId);
         }
 
         if (dto.getEventDate() != null && dto.getEventDate().isBefore(LocalDateTime.now().plusHours(2))) {
@@ -110,8 +106,7 @@ public class EventServiceImpl implements EventService {
 
         Category category = null;
         if (dto.getCategory() != null) {
-            category = categoryRepository.findById(dto.getCategory())
-                    .orElseThrow(() -> new NotFoundException("Категория не найдена"));
+            category = getCategoryById(dto.getCategory());
         }
 
         eventMapper.updateEntity(event, dto, category);
@@ -211,8 +206,7 @@ public class EventServiceImpl implements EventService {
     @Transactional
     public EventFullDto updateEventByAdmin(Long eventId, UpdateEventAdminRequest dto) {
         log.info("Администратор обновляет событие id={}", eventId);
-        Event event = eventRepository.findById(eventId)
-                .orElseThrow(() -> new NotFoundException("Событие не найдено"));
+        Event event = getEventById(eventId);
 
         if (dto.getEventDate() != null && dto.getEventDate().isBefore(LocalDateTime.now().plusHours(1))) {
             throw new BadRequestException("Дата начала изменяемого события должна быть не ранее чем за час от даты публикации");
@@ -220,8 +214,7 @@ public class EventServiceImpl implements EventService {
 
         Category category = null;
         if (dto.getCategory() != null) {
-            category = categoryRepository.findById(dto.getCategory())
-                    .orElseThrow(() -> new NotFoundException("Категория не найдена"));
+            category = getCategoryById(dto.getCategory());
         }
 
         eventMapper.updateEntity(event, dto, category);
@@ -298,5 +291,26 @@ public class EventServiceImpl implements EventService {
             dto.setConfirmedRequests(confirmed != null ? confirmed : 0L);
         }
         return dtos;
+    }
+
+    private Event getEventByUserIds(Long eventId, Long userId) {
+        return eventRepository.findByIdAndInitiatorId(eventId, userId)
+                .orElseThrow(() -> new NotFoundException(
+                        String.format("Событие id=%d не найдено или не принадлежит пользователю id=%d", eventId, userId)));
+    }
+
+    private User getUserById(Long id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Пользователь не найден: id=" + id));
+    }
+
+    private Category getCategoryById(Long id) {
+        return categoryRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Категория не найдена: id=" + id));
+    }
+
+    private Event getEventById(Long id) {
+        return eventRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Событие не найдено: id=" + id));
     }
 }

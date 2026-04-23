@@ -43,11 +43,11 @@ public class CategoryServiceImpl implements CategoryService {
     @Transactional
     public void deleteCategory(Long catId) {
         log.info("Удаление категории id={}", catId);
-        Category category = categoryRepository.findById(catId)
-                .orElseThrow(() -> new NotFoundException("Категория не найдена"));
+        Category category = getCategoryById(catId);
+
         // проверяем, есть ли события, связанные с категорией
         if (eventRepository.existsByCategoryId(catId)) {
-            throw new ConflictException("Существуют события, связанные с категорией");
+            throw new ConflictException("Существуют события, связанные с категорией: id=" + catId);
         }
         categoryRepository.deleteById(catId);
         log.debug("Категория удалена");
@@ -57,8 +57,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Transactional
     public CategoryDto updateCategory(Long catId, CategoryDto dto) {
         log.info("Обновление категории id={}", catId);
-        Category category = categoryRepository.findById(catId)
-                .orElseThrow(() -> new NotFoundException("Категория не найдена"));
+        Category category = getCategoryById(catId);
 
         if (!category.getName().equals(dto.getName())) {
             checkCategoryNameUnique(dto.getName());
@@ -81,8 +80,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public CategoryDto getCategory(Long catId) {
         log.info("Получение категории id={}", catId);
-        Category category = categoryRepository.findById(catId)
-                .orElseThrow(() -> new NotFoundException("Категория не найдена"));
+        Category category = getCategoryById(catId);
         return mapper.toDto(category);
     }
 
@@ -91,5 +89,9 @@ public class CategoryServiceImpl implements CategoryService {
             log.warn("Категория с именем '{}' уже существует", name);
             throw new ConflictException("Категория с именем '" + name + "' уже существует");
         }
+    }
+
+    private Category getCategoryById(Long id) {
+        return categoryRepository.findById(id).orElseThrow(() -> new NotFoundException("Категория не найдена: id=" + id));
     }
 }

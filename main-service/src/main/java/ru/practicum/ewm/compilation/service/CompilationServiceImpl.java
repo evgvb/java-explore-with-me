@@ -46,9 +46,8 @@ public class CompilationServiceImpl implements CompilationService {
     @Transactional
     public void deleteCompilation(Long compId) {
         log.info("Удаление подборки id={}", compId);
-        if (!compilationRepository.existsById(compId)) {
-            throw new NotFoundException("Подборка не найдена");
-        }
+
+        getCompilation(compId);
         compilationRepository.deleteById(compId);
         log.debug("Подборка удалена");
     }
@@ -57,8 +56,9 @@ public class CompilationServiceImpl implements CompilationService {
     @Transactional
     public CompilationDto updateCompilation(Long compId, UpdateCompilationRequest request) {
         log.info("Обновление подборки id={}", compId);
-        Compilation compilation = compilationRepository.findById(compId)
-                .orElseThrow(() -> new NotFoundException("Подборка не найдена"));
+
+        Compilation compilation = getCompilationById(compId);
+
         if (request.getPinned() != null) compilation.setPinned(request.getPinned());
         if (request.getTitle() != null) compilation.setTitle(request.getTitle());
         if (request.getEvents() != null) {
@@ -86,8 +86,11 @@ public class CompilationServiceImpl implements CompilationService {
     @Override
     public CompilationDto getCompilation(Long compId) {
         log.info("Получение подборки id={}", compId);
-        Compilation compilation = compilationRepository.findById(compId)
-                .orElseThrow(() -> new NotFoundException("Подборка не найдена"));
+        Compilation compilation = getCompilationById(compId);
         return mapper.toDto(compilation);
+    }
+
+    private Compilation getCompilationById(Long id) {
+        return compilationRepository.findById(id).orElseThrow(() -> new NotFoundException("Подборка не найдена: id=" + id));
     }
 }
