@@ -45,7 +45,6 @@ public class StatsClient {
                 hit.getApp(), hit.getUri(), hit.getIp());
 
         try {
-
             String url = serverUrl + "/hit";
 
             HttpHeaders headers = new HttpHeaders();
@@ -77,13 +76,12 @@ public class StatsClient {
         log.debug("Запрос статистики: start={}, end={}, uris={}, unique={}", start, end, uris, unique);
 
         try {
-
-            //  UriComponentsBuilder автоматически кодирует
             UriComponentsBuilder builder = UriComponentsBuilder
                     .fromHttpUrl(serverUrl + "/stats")
                     .queryParam("start", start.format(FORMATTER))
                     .queryParam("end", end.format(FORMATTER))
                     .queryParam("unique", unique != null ? unique : false);
+
 
             if (uris != null && !uris.isEmpty()) {
                 for (String uri : uris) {
@@ -91,7 +89,8 @@ public class StatsClient {
                 }
             }
 
-            String url = builder.build().encode().toUriString();
+            String url = builder.build(false).toUriString();
+
             log.debug("Сформированный URL для запроса статистики: {}", url);
 
             ResponseEntity<ViewStats[]> response = restTemplate.getForEntity(url, ViewStats[].class);
