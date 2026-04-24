@@ -121,7 +121,7 @@ public class CommentServiceImpl implements CommentService {
         log.info("Комментарий id={} удалён администратором", commentId);
     }
 
-    private User getUserById(Long id){
+    private User getUserById(Long id) {
         return userRepository.findById(id).orElseThrow(() -> new NotFoundException("Пользователь не найден: id=" + id));
     }
 

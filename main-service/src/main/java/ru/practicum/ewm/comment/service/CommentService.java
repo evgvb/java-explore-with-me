@@ -12,7 +12,9 @@ public interface CommentService {
 
     // приват
     CommentDto createComment(Long userId, Long eventId, NewCommentDto newCommentDto);
+
     CommentDto updateComment(Long userId, Long commentId, NewCommentDto updatedCommentDto);
+
     void deleteComment(Long userId, Long commentId);
 
     // администратор
